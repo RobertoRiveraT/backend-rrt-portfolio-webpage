@@ -5,10 +5,12 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app import models, schemas, database, auth
+from app import models, schemas, database
 from datetime import datetime
 import openai
 import os
+
+from app.routes import auth
 
 router = APIRouter()
 

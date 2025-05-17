@@ -4,8 +4,9 @@
 
 from fastapi import FastAPI
 from app import models, database
-from app.auth import router as auth_router
-from app.chat import router as chat_router
+from app.routes.auth import router as auth_router
+from app.routes.chat import router as chat_router
+from app.routes.user import router as user_router
 
 models.Base.metadata.create_all(bind=database.engine)
 
@@ -18,6 +19,7 @@ app = FastAPI(
 # Incluir rutas de diferentes módulos
 app.include_router(auth_router)
 app.include_router(chat_router)
+app.include_router(user_router)
 
 @app.get("/")
 def root():
