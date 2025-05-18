@@ -4,6 +4,7 @@
 
 from fastapi import FastAPI
 from app import models, database
+from fastapi.middleware.cors import CORSMiddleware
 from app.routes.auth import router as auth_router
 from app.routes.chat import router as chat_router
 from app.routes.user import router as user_router
@@ -14,6 +15,14 @@ app = FastAPI(
     title="Chatbot Arelia API",
     description="Backend API for chatbot with authentication and OpenAI integration.",
     version="1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],  # 👈 durante desarrollo
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Incluir rutas de diferentes módulos
