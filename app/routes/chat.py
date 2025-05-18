@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app import models, schemas, database
 from datetime import datetime
+from pydantic import BaseModel
 import openai
 import os
 
@@ -62,3 +63,16 @@ def chat(message: schemas.MessageCreate,
     db.refresh(bot_msg)
 
     return bot_msg
+
+@router.get("/chat-history", response_model=list[schemas.MessageOut])
+def get_chat_history(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    history = (
+        db.query(models.Message)
+        .filter(models.Message.user_id == current_user.id)
+        .order_by(models.Message.timestamp.asc())
+        .all()
+    )
+    return history

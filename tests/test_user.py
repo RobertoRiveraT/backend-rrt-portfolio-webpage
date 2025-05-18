@@ -22,13 +22,21 @@ def test_user_account_crud():
 
     # Cambiar email
     new_email = "newemail@example.com"
-    response_email = client.put(f"/update-email?new_email={new_email}", headers=headers)
+    response_email = client.put(
+        "/update-email",
+        headers=headers,
+        json={"new_email": new_email}  # ✅ JSON en el body
+    )
     assert response_email.status_code == 200
     assert "Correo actualizado correctamente" in response_email.json()["message"]
 
     # Cambiar contraseña
     new_password = "newpass456"
-    response_password = client.put(f"/update-password?new_password={new_password}", headers=headers)
+    response_password = client.put(
+        "/update-password",
+        headers=headers,
+        json={"new_password": new_password}
+    )
     assert response_password.status_code == 200
     assert "Contraseña actualizada correctamente" in response_password.json()["message"]
 
