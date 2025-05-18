@@ -17,9 +17,14 @@ app = FastAPI(
     version="1.0"
 )
 
+origins = [
+    "http://localhost:4200",
+    "https://chatbot-arelia-frontend.vercel.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],  # 👈 durante desarrollo
+    allow_origins=origins,  # 👈 aquí defines qué frontend(s) están permitidos
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
