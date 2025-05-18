@@ -28,14 +28,22 @@ def update_email(
     db.commit()
     return {"message": "Correo actualizado correctamente."}
 
+class PasswordUpdate(BaseModel):
+    new_password: str
 
 @router.put("/update-password")
-def update_password(new_password: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def update_password(
+    payload: PasswordUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    new_password = payload.new_password
+
     user = db.query(User).filter(User.id == current_user.id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    user.hashed_password = pwd_context.hash(new_password) # type: ignore
+    user.hashed_password = pwd_context.hash(new_password)  # type: ignore
     db.commit()
     return {"message": "Contraseña actualizada correctamente."}
 
