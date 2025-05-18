@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from app import models
 from app.database import get_db
 from app.models import User
 from app.routes.auth import get_current_user
@@ -54,6 +55,11 @@ def delete_account(db: Session = Depends(get_db), current_user: User = Depends(g
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
+    # Eliminar mensajes del usuario
+    db.query(models.Message).filter(models.Message.user_id == current_user.id).delete()
+
+    # Luego eliminar usuario
     db.delete(user)
     db.commit()
+
     return {"message": "Cuenta eliminada correctamente."}
