@@ -5,9 +5,13 @@
 from fastapi import FastAPI
 from app import models, database
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 from app.routes.auth import router as auth_router
 from app.routes.chat import router as chat_router
 from app.routes.user import router as user_router
+from app.routes.testing import router as testing
+
+load_dotenv()
 
 models.Base.metadata.create_all(bind=database.engine)
 
@@ -19,7 +23,8 @@ app = FastAPI(
 
 origins = [
     "http://localhost:4200",
-    "https://chatbot-arelia-frontend.vercel.app"
+    "https://chatbot-arelia-frontend.vercel.app",
+    "https://github.com"
 ]
 
 app.add_middleware(
@@ -34,6 +39,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(user_router)
+app.include_router(testing)
 
 @app.get("/")
 def root():

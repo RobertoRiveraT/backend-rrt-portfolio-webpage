@@ -1,8 +1,8 @@
-# Este archivo define los esquemas de validación de datos (Pydantic models)
-# utilizados por FastAPI para validar las solicitudes entrantes y estructurar las respuestas.
-# Aquí se declaran los modelos de usuario y mensaje tanto para crear, recibir, y retornar datos.
+# This file defines the data validation schemas (Pydantic models)
+# used by FastAPI to validate incoming requests and structure responses.
+# It declares user and message models for creating, receiving, and returning data.
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -17,8 +17,8 @@ class UserOut(BaseModel):
     email: EmailStr
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    # Enables compatibility with ORM objects (Pydantic v2+)
+    model_config = ConfigDict(from_attributes=True)
 
 # -------- AUTH --------
 
@@ -40,5 +40,5 @@ class MessageOut(BaseModel):
     content: str
     timestamp: datetime
 
-    class Config:
-        orm_mode = True
+    # Enables compatibility with ORM objects (Pydantic v2+)
+    model_config = ConfigDict(from_attributes=True)
