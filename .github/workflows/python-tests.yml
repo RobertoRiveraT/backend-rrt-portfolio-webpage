@@ -7,11 +7,18 @@ on:
     branches: [Dev]
 
 jobs:
-  test:
+  backend-tests:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      OPENIA_SECRET: ${{ secrets.OPENIA_SECRET }}
+      ALGORITHM: ${{ secrets.ALGORITHM }}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -23,6 +30,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run tests with pytest
+    - name: Run auth tests
       run: |
-        pytest
+        echo "Running test_auth.py"
+        pytest tests/test_auth.py
+
+    - name: Run chat flow tests
+      run: |
+        echo "Running test_chat_flow.py"
+        pytest tests/test_chat_flow.py
+
+    - name: Run user tests
+      run: |
+        echo "Running test_user.py"
+        pytest tests/test_user.py
