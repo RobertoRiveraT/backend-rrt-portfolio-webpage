@@ -6,21 +6,19 @@ on:
   pull_request:
     branches: [Dev]
 
-jobs:
-  install-dependencies:
-    
-    runs-on: ubuntu-latest
-    
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      OPENIA_SECRET: ${{ secrets.OPENIA_SECRET }}
-      ALGORITHM: ${{ secrets.ALGORITHM }}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  OPENIA_SECRET: ${{ secrets.OPENIA_SECRET }}
+  ALGORITHM: ${{ secrets.ALGORITHM }}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
 
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
     outputs:
-      cache-hit: ${{ steps.cache.outputs.cache-hit }}
-    
+      python-path: ${{ steps.set-path.outputs.python-path }}
     steps:
       - uses: actions/checkout@v3
 
@@ -41,51 +39,52 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Save PYTHONPATH
+        id: set-path
+        run: echo "python-path=$GITHUB_WORKSPACE" >> $GITHUB_OUTPUT
+
+      - name: Upload workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-deps
+          path: .
 
   user-tests:
-    needs: install-dependencies
+    needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-deps
+          path: .
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
       - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=${{ needs.setup.outputs.python-path }}" >> $GITHUB_ENV
 
       - name: Run User Tests
-        run: |
-          pytest tests/test_auth.py tests/test_user.py
+        run: pytest tests/test_auth.py tests/test_user.py
 
   chatbot-tests:
-    needs: install-dependencies
+    needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-deps
+          path: .
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
       - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=${{ needs.setup.outputs.python-path }}" >> $GITHUB_ENV
 
       - name: Run Chatbot Tests
-        run: |
-          pytest tests/test_chat_flow.py
+        run: pytest tests/test_chat_flow.py
