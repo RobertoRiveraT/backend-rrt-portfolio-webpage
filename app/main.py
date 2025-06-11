@@ -19,7 +19,8 @@ app = FastAPI(
 
 origins = [
     "http://localhost:4200",
-    "https://chatbot-arelia-frontend.vercel.app"
+    "https://chatbot-arelia-frontend.vercel.app",
+    "https://github.com"
 ]
 
 app.add_middleware(
