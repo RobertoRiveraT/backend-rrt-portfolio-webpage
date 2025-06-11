@@ -62,4 +62,4 @@ def delete_account(db: Session = Depends(get_db), current_user: User = Depends(g
     db.delete(user)
     db.commit()
 
-    return {"message": "Cuenta eliminada correctamente."}
+    return {"message": "The account was successfully deleted."}

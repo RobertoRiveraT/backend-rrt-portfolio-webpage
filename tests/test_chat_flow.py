@@ -1,39 +1,61 @@
-from fastapi.testclient import TestClient
-from app.main import app
+import pytest
 
-client = TestClient(app)
+@pytest.fixture
+def chat_user():
+    # Provide test user credentials
+    return {
+        "email": "testUserChatFlow@example.com",
+        "password": "pytestpassword123"
+    }
 
-def test_chat_flow_reusable():
-    email = "pytestuserchat@example.com"
-    password = "pytestpassword123"
+@pytest.fixture
+def chat_auth(client, chat_user):
+    """
+    Fixture that ensures the user is deleted before test,
+    registers the user, logs in, and returns the Authorization header.
+    """
+    # Cleanup in case user already exists
+    try:
+        token = get_token(client, chat_user)
+        client.delete("/delete-account", headers={
+            "Authorization": f"Bearer {token}"
+        })
+    except AssertionError:
+        pass  # user didn't exist
 
-    # 1. Verificar si el usuario ya existe tratando de loguear
-    login = client.post(
-        "/login",
-        data={"username": email, "password": password},
-        headers={"Content-Type": "application/x-www-form-urlencoded"}
-    )
+    # Register user
+    register = client.post("/register", json=chat_user)
+    assert register.status_code == 200
 
-    if login.status_code == 200:
-        token = login.json()["access_token"]
-    else:
-        # 2. Registrar usuario si no existe
-        register = client.post("/register", json={"email": email, "password": password})
-        assert register.status_code == 200
+    # Login to get token
+    token = get_token(client, chat_user)
+    yield {"Authorization": f"Bearer {token}"}
 
-        # 3. Login ahora que fue creado
-        login = client.post(
-            "/login",
-            data={"username": email, "password": password},
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
-        )
-        assert login.status_code == 200
-        token = login.json()["access_token"]
+    # Cleanup user after test
+    client.delete("/delete-account", headers={"Authorization": f"Bearer {token}"})
 
-    headers = {"Authorization": f"Bearer {token}"}
+def get_token(client, user_data):
+    """Helper function to get JWT token for a user"""
+    response = client.post("/login", data={
+        "username": user_data["email"],
+        "password": user_data["password"]
+    }, headers={
+        "Content-Type": "application/x-www-form-urlencoded"
+    })
+    assert response.status_code == 200
+    return response.json()["access_token"]
 
-    # 4. Enviar mensaje al bot
-    response_chat = client.post("/chat", json={"content": "Hola, ¿qué puedes hacer?"}, headers=headers)
+def test_chat_flow(client, chat_auth):
+    """
+    Tests the complete chat flow:
+    1. User sends a message to the bot
+    2. Bot responds with content
+    3. User retrieves chat history
+    """
+    # 1. Send message to /chat endpoint
+    response_chat = client.post("/chat", json={
+        "content": "Hola, ¿qué puedes hacer?"
+    }, headers=chat_auth)
     assert response_chat.status_code == 200
     data = response_chat.json()
     assert "content" in data
@@ -41,12 +63,10 @@ def test_chat_flow_reusable():
     assert isinstance(data["content"], str)
     assert len(data["content"]) > 0
 
-    # 5. Obtener historial
-    response_history = client.get("/chat-history", headers=headers)
+    # 2. Fetch message history
+    response_history = client.get("/chat-history", headers=chat_auth)
     assert response_history.status_code == 200
     history = response_history.json()
     assert isinstance(history, list)
-    if history:
-        assert "content" in history[0]
-        assert "role" in history[0]
-        assert history[0]["role"] in ["user", "assistant"]
+    assert len(history) >= 2  # Should contain both user and assistant messages
+    assert all("role" in msg and "content" in msg for msg in history)
