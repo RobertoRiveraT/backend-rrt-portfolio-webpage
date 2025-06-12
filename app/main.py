@@ -23,9 +23,8 @@ app = FastAPI(
 
 origins = [
     "http://localhost:4200",
-    "https://rrt-frontend-webpage.vercel.app", # <-Production
-    "https://rrt-frontend-webpage-qa.vercel.app", # <- qa-staging
-    "https://frontend-webpage-qa.vercel.app", # <- qa-staging
+    "https://rrt-frontend-prod.vercel.app", # <-Production
+    "https://rrt-frontend-qa.vercel.app", # <- qa-staging
     "https://github.com"
 ]
 
