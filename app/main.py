@@ -23,7 +23,8 @@ app = FastAPI(
 
 origins = [
     "http://localhost:4200",
-    "https://chatbot-arelia-frontend.vercel.app", # <-Production
+    "https://rrt-frontend-webpage.vercel.app", # <-Production
+    "https://rrt-frontend-webpage-qa.vercel.app", # <- qa-staging
     "https://frontend-webpage-qa.vercel.app", # <- qa-staging
     "https://github.com"
 ]
